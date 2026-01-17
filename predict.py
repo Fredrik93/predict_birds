@@ -32,4 +32,8 @@ with torch.no_grad():
 # 5. Get predicted class
 _, predicted = outputs.max(1)
 
-print("Predicted class index:", predicted.item())
+
+with open("imagenet_classes.txt") as f:
+    labels = [line.strip() for line in f.readlines()]
+
+print("Prediction:", labels[predicted.item()])
