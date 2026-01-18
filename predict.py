@@ -4,6 +4,13 @@ from torchvision.models import resnet18, ResNet18_Weights
 
 from PIL import Image
 
+bird_keywords = [
+    "bird", "robin", "eagle", "sparrow", "parrot", "owl",
+    "hawk", "falcon", "penguin", "flamingo",
+    "woodpecker", "duck", "goose", "heron"
+]
+
+
 # 1. Load a pre-trained model
 weights = ResNet18_Weights.DEFAULT
 model = resnet18(weights=weights)
@@ -21,7 +28,7 @@ transform = transforms.Compose([
 ])
 
 # 3. Load image
-image = Image.open("images/bird.jpg").convert("RGB")
+image = Image.open("images/bald_eagle.jpg").convert("RGB")
 image = transform(image)
 image = image.unsqueeze(0)  # add batch dimension
 
@@ -36,4 +43,20 @@ _, predicted = outputs.max(1)
 with open("imagenet_classes.txt") as f:
     labels = [line.strip() for line in f.readlines()]
 
-print("Prediction:", labels[predicted.item()])
+
+probabilities = torch.nn.functional.softmax(outputs[0], dim=0)
+
+best_bird = None
+best_prob = 0.0
+
+for i, label in enumerate(labels):
+    if any(word in label.lower() for word in bird_keywords):
+        prob = probabilities[i].item()
+        if prob > best_prob:
+            best_prob = prob
+            best_bird = label
+
+if best_bird:
+    print(f"Predicted bird: {best_bird} ({best_prob:.2%})")
+else:
+    print("No bird detected")
